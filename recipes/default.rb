@@ -10,12 +10,26 @@
 name = 'vagrant'
 rbenvdir = "/home/#{name}/.rbenv"
 
+execute "apt-get update"
+
 %w(
-git vim lv curl
+git vim lv curl byobu
 autoconf binutils-doc build-essential flex libc6-dev automake
 libtool libyaml-dev zlib1g-dev openssl libssl-dev
 libreadline-dev libxml2-dev libxslt1-dev ncurses-dev
-).each { |p| package p }
+).each do |p|
+  package p do
+    options "--force-yes"
+  end
+end
+
+%w(
+.bashrc .vimrc .emacs.d .lv .gitconfig .rspec
+).each do |dots|
+  link "/home/#{name}/#{dots}" do
+    to "/home/#{name}/win/#{dots}"
+  end
+end
 
 git rbenvdir do
   repository "https://github.com/sstephenson/rbenv.git"
