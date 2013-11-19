@@ -8,7 +8,8 @@
 #
 
 name = 'vagrant'
-rbenvdir = "/home/#{name}/.rbenv"
+home = "/home/#{name}"
+rbenvdir = "#{home}/.rbenv"
 
 execute "apt-get update"
 
@@ -23,12 +24,16 @@ libreadline-dev libxml2-dev libxslt1-dev ncurses-dev
   end
 end
 
-%w(
-.bashrc .vimrc .emacs.d .lv .gitconfig .rspec
-).each do |dots|
-  link "/home/#{name}/#{dots}" do
-    to "/home/#{name}/win/#{dots}"
-  end
+execute "dots/setup.sh" do
+  command File.expand_path(".dots/setup.sh", home)
+  user name
+  action :nothing
+end
+
+git File.expand_path(".dots", home) do
+  repository "https://github.com/komazarari/dots.git"
+  notifies :run, "execute[dots/setup.sh]"
+  user name
 end
 
 git rbenvdir do
