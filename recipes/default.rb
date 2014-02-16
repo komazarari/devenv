@@ -7,14 +7,14 @@
 # All rights reserved - Do Not Redistribute
 #
 
-name = 'vagrant'
+name = node['dev']['user']
 home = "/home/#{name}"
 rbenvdir = "#{home}/.rbenv"
 
 execute "apt-get update"
 
 %w(
-git vim lv curl byobu
+git vim lv curl byobu emacs
 autoconf binutils-doc build-essential flex libc6-dev automake
 libtool libyaml-dev zlib1g-dev openssl libssl-dev
 libreadline-dev libxml2-dev libxslt1-dev ncurses-dev
@@ -33,6 +33,11 @@ end
 git File.expand_path(".dots", home) do
   repository "https://github.com/komazarari/dots.git"
   notifies :run, "execute[dots/setup.sh]"
+  user name
+end
+
+git File.expand_path(".emacs.d", home) do
+  repository "https://github.com/komazarari/.emacs.d.git"
   user name
 end
 
