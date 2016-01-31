@@ -18,6 +18,7 @@ git vim lv curl byobu emacs
 autoconf binutils-doc build-essential flex libc6-dev automake
 libtool libyaml-dev zlib1g-dev openssl libssl-dev
 libreadline-dev libxml2-dev libxslt1-dev ncurses-dev
+nodejs npm
 ).each do |p|
   package p do
     options "--force-yes"
@@ -67,4 +68,17 @@ EOC
   user name
   group name
   action :nothing
+end
+
+bash "rename_nodejs" do
+  code <<-EOC
+update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1
+EOC
+  creates "/usr/bin/node"
+end
+
+bash "install npm packages" do
+  code <<-EOC
+npm install  -g eslint babel-eslint eslint-plugin-react
+EOC
 end
