@@ -1,29 +1,49 @@
 #
-# Cookbook Name:: dev
+# Cookbook Name:: devenv
 # Recipe:: default
 #
-# Copyright (C) 2013 YOUR_NAME
-# 
+# Copyright (C) 2013-2018 YOUR_NAME
+#
 # All rights reserved - Do Not Redistribute
 #
 
-name = node['dev']['user']
-home = "/home/#{name}"
+name = node['devenv']['user']
+home = node['devenv']['home']
 rbenvdir = "#{home}/.rbenv"
 
-execute "apt-get update"
-
-%w(
-git vim lv curl byobu emacs
-autoconf binutils-doc build-essential flex libc6-dev automake
-libtool libyaml-dev zlib1g-dev openssl libssl-dev
-libreadline-dev libxml2-dev libxslt1-dev ncurses-dev
-nodejs npm
-).each do |p|
-  package p do
-    options "--force-yes"
-  end
+execute "apt-get update" do
+  only_if { (Time.now - File::Stat.new('/var/cache/apt/pkgcache.bin').mtime) > 1500 }
 end
+
+packages = %w[
+  git vim lv curl byobu
+  build-essential make automake
+  libtool zlib1g-dev openssl libssl-dev
+  libreadline-dev libxml2-dev libxslt1-dev
+  python3-pip
+  apt-transport-https gnupg dirmngr ca-certificates software-properties-common
+  golang
+]
+package packages
+
+apt_repository 'emacs' do
+  uri 'ppa:kelleyk/emacs'
+end
+package %w[
+  language-pack-ja language-pack-gnome-ja
+  cmigemo
+]
+package node['devenv']['emacs']
+
+apt_repository 'docker' do
+  uri 'https://download.docker.com/linux/ubuntu'
+  arch 'amd64'
+  components ['stable']
+  distribution node['lsb']['codename']
+  key 'https://download.docker.com/linux/ubuntu/gpg'
+  action :add
+end
+package 'docker-ce'
 
 execute "dots/setup.sh" do
   command File.expand_path(".dots/setup.sh", home)
@@ -51,7 +71,6 @@ end
 directory "#{rbenvdir}/plugins" do
   owner name
   group name
-  notifies :run, "bash[rbenv_init]"
 end
 
 git "#{rbenvdir}/plugins/ruby-build" do
@@ -60,25 +79,13 @@ git "#{rbenvdir}/plugins/ruby-build" do
   group name
 end
 
-bash "rbenv_init" do
-  code <<-EOC
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> /home/#{name}/.profile
-echo 'eval "$(rbenv init -)"' >> /home/#{name}/.profile
-EOC
-  user name
-  group name
-  action :nothing
-end
-
-bash "rename_nodejs" do
-  code <<-EOC
-update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1
-EOC
-  creates "/usr/bin/node"
+execute 'node' do
+  command "sudo curl -sL https://deb.nodesource.com/setup_#{node['devenv']['nodejs_major_version']}.x | sudo bash - && sudo apt-get install nodejs -y"
+  creates '/usr/bin/node'
 end
 
 bash "install npm packages" do
   code <<-EOC
-npm install  -g eslint babel-eslint eslint-plugin-react
+npm install -g eslint babel-eslint eslint-plugin-react
 EOC
 end
