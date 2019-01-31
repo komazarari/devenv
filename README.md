@@ -1,27 +1,26 @@
-# dev cookbook
+# dev recipe
 
-local 環境を構築
+WSL Ubuntu 上の環境を構築するための recipe
 
 # Requirements
 chef client
 
-```
-curl -L https://omnitruck.chef.io/install.sh | sudo bash
-```
+    curl -L https://omnitruck.chef.io/install.sh | sudo bash
 
 # Usage
 
-    mkdir -p cookbooks
-    cd cookbooks
-    git clone https://github.com/komazarari/devenv.git
-    cd ../
-    sudo chef-client -z -o devenv --why-run
-    sudo chef-client -z -o devenv
+    sudo -E chef-apply ./recipes/default.rb --why-run
+    sudo -E chef-apply ./recipes/default.rb
 
-# Attributes
+    sudo -E chef-apply ./recipes/wsl.rb
+    sudo -E chef-apply ./recipes/fish.rb
 
-# Recipes
+then
 
-# Author
+    chsh -s /usr/bin/fish
 
-Author:: YOUR_NAME (<YOUR_EMAIL>)
+and logout && re-login
+
+    # without sudo
+    chef-apply ./recipes/post_chsh.rb --why-run
+    chef-apply ./recipes/post_chsh.rb
