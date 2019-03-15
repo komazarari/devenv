@@ -106,11 +106,11 @@ git "#{nodenvdir}/plugins/node-build" do
   group name
 end
 
-git "${home}/.fzf" do
+git "#{home}/.fzf" do
   repository "https://github.com/junegunn/fzf.git"
   user name
   group name
-  notifies :run, 'execute[#{home}/.fzf/install]'
+  notifies :run, "execute[#{home}/.fzf/install]"
 end
 
 execute "#{home}/.fzf/install" do
