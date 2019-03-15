@@ -123,6 +123,13 @@ directory "#{home}/.ssh" do
   mode '700'
 end
 
+directory "#{home}/.local" do
+  user name
+  group name
+  mode '755'
+end
+
+
 #bash "install npm packages" do
 #  code <<-EOC
 #npm install -g eslint babel-eslint eslint-plugin-react
