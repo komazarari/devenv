@@ -11,15 +11,15 @@ end
 
 git File.expand_path(".dots", home) do
  repository "https://github.com/komazarari/dots.git"
- notifies :run, "execute[dots/setup.sh]"
- checkout_branch 'master'
+# notifies :run, "execute[dots/setup.sh]"
+ revision 'master'
  user name
  group name
 end
 
 git File.expand_path(".emacs.d", home) do
   repository "https://github.com/komazarari/.emacs.d.git"
-  checkout_branch 'master'
+  revision 'master'
   user name
   group name
 end
@@ -27,6 +27,7 @@ end
 
 git rbenvdir do
   repository "https://github.com/sstephenson/rbenv.git"
+  revision 'master'
   user name
   group name
 end
@@ -38,12 +39,14 @@ end
 
 git "#{rbenvdir}/plugins/ruby-build" do
   repository "https://github.com/sstephenson/ruby-build.git"
+  revision 'master'
   user name
   group name
 end
 
 git nodenvdir do
   repository "https://github.com/nodenv/nodenv.git"
+  revision 'master'
   user name
   group name
 end
@@ -56,12 +59,14 @@ end
 
 git "#{nodenvdir}/plugins/node-build" do
   repository "https://github.com/nodenv/node-build.git"
+  revision 'master'
   user name
   group name
 end
 
 git "#{home}/.fzf" do
   repository "https://github.com/junegunn/fzf.git"
+  revision 'master'
   user name
   group name
   notifies :run, "execute[#{home}/.fzf/install]"

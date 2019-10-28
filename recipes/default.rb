@@ -18,7 +18,6 @@ packages = %w[
   libreadline-dev libxml2-dev libxslt1-dev
   python3-pip
   apt-transport-https gnupg dirmngr ca-certificates software-properties-common
-  golang
   keychain
 ]
 package packages
