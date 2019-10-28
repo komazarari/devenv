@@ -93,3 +93,13 @@ directory "#{home}/.local/bin" do
   group name
   mode '755'
 end
+
+execute "go get github.com/motemen/ghq" do
+  creates "#{home}/go/bin/ghq"
+end
+
+# other repos
+## https://github.com/ahmetb/kubectx
+### ghq get ahmetb/kubectx
+## https://github.com/aluxian/fish-kube-prompt
+### ghq get aluxian/fish-kube-prompt

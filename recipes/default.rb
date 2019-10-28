@@ -41,3 +41,23 @@ apt_repository 'docker' do
 end
 package ['docker-ce-cli']
 
+apt_repository 'golang-backports' do
+  uri 'ppa:longsleep/golang-backports'
+end
+package 'golang-1.13' do
+  notifies :run, 'execute[install_golang]'
+  notifies :run, 'execute[install_gofmt]'
+end
+
+# golang 1.13
+execute 'install_golang' do
+  command "update-alternatives --install /usr/local/bin/go golang /usr/lib/go-1.13/bin/go 10"
+  creates '/usr/local/bin/go'
+  action :nothing
+end
+
+execute 'install_gofmt' do
+  command "update-alternatives --install /usr/local/bin/gofmt gofmt /usr/lib/go-1.13/bin/gofmt 10"
+  creates '/usr/local/bin/gofmt'
+  action :nothing
+end
