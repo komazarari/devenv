@@ -24,6 +24,17 @@ git File.expand_path(".emacs.d", home) do
   group name
 end
 
+directory "#{home}/.config" do
+  owner name
+  group name
+end
+
+git File.expand_path(".config/fish", home) do
+  repository "https://github.com/komazarari/fish.git"
+  revision 'master'
+  user name
+  group name
+end
 
 git rbenvdir do
   repository "https://github.com/sstephenson/rbenv.git"

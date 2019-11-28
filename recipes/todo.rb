@@ -5,13 +5,6 @@ execute 'curl -LO https://storage.googleapis.com/kubernetes-release/release/`cur
 
 execute 'curl https://git.io/fisher --create-dirs -sLo ~/.config/fish/functions/fisher.fish'
 
-
-# SUDO
-# execute 'sudo add-apt-repository ppa:longsleep/golang-backports'
-# execute 'sudo apt install golang-1.13'
-# execute 'sudo update-alternatives --install /usr/bin/go golang /usr/lib/go-1.13/bin/go 10'
-# execute 'sudo update-alternatives --install /usr/bin/gofmt gofmg /usr/lib/go-1.13/bin/gofmt 10'
-
 # other repos
 ## https://github.com/ahmetb/kubectx
 ### ghq get ahmetb/kubectx
