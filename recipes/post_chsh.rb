@@ -4,12 +4,6 @@ execute 'fish -c "fisher add decors/fish-ghq"'
 execute 'fish -c "fisher add rafaelrinaldi/pure"'
 execute 'fish -c "fisher add jethrokuan/z"'
 
-execute 'go get github.com/motemen/ghq' do
-  user name
-  group name
-  not_if "which ghq"
-end
-
 execute 'fish -c "set -U fish_user_paths $HOME/.local/bin $fish_user_paths"' do
   not_if { ENV['PATH'].include?('/.local/bin') }
 end

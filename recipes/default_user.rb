@@ -109,6 +109,22 @@ execute "go get github.com/motemen/ghq" do
   creates "#{home}/go/bin/ghq"
 end
 
+execute "go get github.com/go-delve/delve/cmd/dlv" do
+  creates "#{home}/go/bin/dlv"
+end
+
+execute "go get github.com/stamblerre/gocode" do
+  creates "#{home}/go/bin/gocode"
+end
+
+execute "go get github.com/rogpeppe/godef" do
+  creates "#{home}/go/bin/godef"
+end
+
+execute "go get golang.org/x/tools/gopls" do
+  creates "#{home}/go/bin/gopls"
+end
+
 # other repos
 ## https://github.com/ahmetb/kubectx
 ### ghq get ahmetb/kubectx
