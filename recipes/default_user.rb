@@ -75,18 +75,6 @@ git "#{nodenvdir}/plugins/node-build" do
   group name
 end
 
-git "#{home}/.fzf" do
-  repository "https://github.com/junegunn/fzf.git"
-  revision 'master'
-  user name
-  group name
-  notifies :run, "execute[#{home}/.fzf/install]"
-end
-
-execute "#{home}/.fzf/install" do
-  action :nothing
-end
-
 directory "#{home}/.ssh" do
   user name
   group name
