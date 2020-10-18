@@ -19,7 +19,7 @@ end
 
 git File.expand_path(".emacs.d", home) do
   repository "https://github.com/komazarari/.emacs.d.git"
-  revision 'master'
+  revision 'main'
   user name
   group name
 end
@@ -109,9 +109,43 @@ execute "go get github.com/rogpeppe/godef" do
   creates "#{home}/go/bin/godef"
 end
 
-execute "go get golang.org/x/tools/gopls" do
-  creates "#{home}/go/bin/gopls"
+# execute "go get golang.org/x/tools/gopls" do
+#   creates "#{home}/go/bin/gopls"
+# end
+
+# aws cli
+remote_file "#{Chef::Config[:file_cache_path]}/awscliv2.zip" do
+  source 'https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip'
+  not_if "[ -d #{home}/aws-cli/v2 ]"
+  ## archive_file is supported in Chef 15 or newer
+  notifies :extract, 'archive_file[awscliv2]', :immediately
 end
+
+archive_file 'awscliv2' do
+  destination "#{Chef::Config[:file_cache_path]}/awscliv2"
+  path "#{Chef::Config[:file_cache_path]}/awscliv2.zip"
+  action :nothing
+  notifies :run, 'bash[install_awscliv2]', :immediately
+end
+
+bash "install_awscliv2" do
+  cwd "#{Chef::Config[:file_cache_path]}/awscliv2"
+  code "./aws/install --install-dir #{home}/aws-cli --bin-dir #{home}/.local/bin"
+  action :nothing
+end
+
+# kubectl
+stable_ver = `curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`
+remote_file "#{home}/.local/bin/kubectl" do
+  source "https://storage.googleapis.com/kubernetes-release/release/#{stable_ver}/bin/linux/amd64/kubectl"
+  user name
+  group name
+  mode '755'
+end
+
+#  LocalForward 192.168.128.2:13010 lvs-dev.gree-dev.net:13010
+#  LocalForward 192.168.128.2:13011 lvs-dev.gree-dev.net:13011
+
 
 # other repos
 ## https://github.com/ahmetb/kubectx
