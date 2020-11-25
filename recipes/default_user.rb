@@ -143,9 +143,6 @@ remote_file "#{home}/.local/bin/kubectl" do
   mode '755'
 end
 
-#  LocalForward 192.168.128.2:13010 lvs-dev.gree-dev.net:13010
-#  LocalForward 192.168.128.2:13011 lvs-dev.gree-dev.net:13011
-
 
 # other repos
 ## https://github.com/ahmetb/kubectx
