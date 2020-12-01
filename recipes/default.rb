@@ -20,6 +20,7 @@ package %w[
   apt-transport-https gnupg dirmngr ca-certificates software-properties-common
   ripgrep fzf
   keychain
+  privoxy
 ]
 
 package %w[
