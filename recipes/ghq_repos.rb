@@ -11,7 +11,7 @@ home = ENV['HOME']
 link "#{home}/.local/bin/kubectx" do
   to "#{home}/src/github.com/ahmetb/kubectx/kubectx"
 end
-link "#{home}/.local/bin/kubectx" do
+link "#{home}/.local/bin/kubens" do
   to "#{home}/src/github.com/ahmetb/kubectx/kubens"
 end
 link "#{home}/.config/fish/functions/kube_ps.fish" do
