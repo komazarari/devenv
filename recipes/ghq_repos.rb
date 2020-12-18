@@ -14,6 +14,9 @@ end
 link "#{home}/.local/bin/kubectx" do
   to "#{home}/src/github.com/ahmetb/kubectx/kubens"
 end
-# link "#{home}/.config/fish/" do
-#   to "#{home}/src/github.com/komazarari/fish-kube-prompt"
-# end
+link "#{home}/.config/fish/functions/kube_ps.fish" do
+  to "#{home}/src/github.com/komazarari/fish-kube-prompt/kube_ps.fish"
+end
+link "#{home}/.config/fish/functions/__kube_prompt.fish" do
+  to "#{home}/src/github.com/komazarari/fish-kube-prompt/__kube_prompt.fish"
+end

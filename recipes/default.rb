@@ -28,7 +28,11 @@ package %w[
   cmigemo
 ]
 
-package 'emacs'
+apt_repository 'emacs-ppa' do
+  uri 'ppa:kelleyk/emacs'
+end
+package "emacs27"
+# package 'emacs'
 
 #apt_repository 'docker' do
 #  uri 'https://download.docker.com/linux/ubuntu'
