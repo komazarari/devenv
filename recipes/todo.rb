@@ -12,3 +12,14 @@ homebrew_package 'aws-sam-cli'
 # other repos
 ## https://github.com/aluxian/fish-kube-prompt
 ### ghq get aluxian/fish-kube-prompt
+
+
+# sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com "(lsb_release -cs)" main"
+# curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+apt_repository 'terraform' do
+  arch 'amd64'
+  components 'main'
+  uri 'https://apt.releases.hashicorp.com'
+  key 'https://apt.releases.hashicorp.com/gpg'
+end
+package 'terraform'

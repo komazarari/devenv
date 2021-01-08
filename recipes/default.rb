@@ -12,16 +12,20 @@ execute "apt-get update" do
 end
 
 package %w[
-  git vim lv curl byobu
+  git vim lv curl byobu jq
   build-essential make automake
   libtool zlib1g-dev openssl libssl-dev
   libreadline-dev libxml2-dev libxslt1-dev
   python3-pip
   apt-transport-https gnupg dirmngr ca-certificates software-properties-common
-  ripgrep fzf
-  keychain
+  fzf zip tree
+  keychain direnv
   privoxy
 ]
+
+package %w[bat ripgrep] do
+  options 'Dpkg::Options::="--force-overwrite"'
+end
 
 package %w[
   language-pack-ja language-pack-gnome-ja
