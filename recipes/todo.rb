@@ -18,7 +18,7 @@ homebrew_package 'aws-sam-cli'
 # curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 apt_repository 'terraform' do
   arch 'amd64'
-  components 'main'
+  components ['main']
   uri 'https://apt.releases.hashicorp.com'
   key 'https://apt.releases.hashicorp.com/gpg'
 end
