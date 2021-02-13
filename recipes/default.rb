@@ -24,12 +24,13 @@ package %w[
 ]
 
 package %w[bat ripgrep] do
-  options 'Dpkg::Options::="--force-overwrite"'
+  options '-o Dpkg::Options::="--force-overwrite"'
 end
 
 package %w[
   language-pack-ja language-pack-gnome-ja
   cmigemo
+  fonts-firacode
 ]
 
 apt_repository 'emacs-ppa' do
@@ -68,3 +69,8 @@ execute 'install_gofmt' do
   creates '/usr/local/bin/gofmt'
   action :nothing
 end
+
+apt_repository 'fish' do
+    uri 'ppa:fish-shell/release-3'
+end
+package 'fish'
