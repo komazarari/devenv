@@ -53,6 +53,15 @@ package "emacs27"
 #end
 #package ['docker-ce-cli']
 
+apt_repository 'hashicorp' do
+  uri 'https://apt.releases.hashicorp.com'
+  distribution node['lsb']['codename']
+  components ['main']
+  arch 'amd64'
+  key 'https://apt.releases.hashicorp.com/gpg'
+end
+package "terraform"
+
 apt_repository 'golang-backports' do
   uri 'ppa:longsleep/golang-backports'
 end
