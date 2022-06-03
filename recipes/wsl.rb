@@ -28,3 +28,7 @@ link '/usr/share/fonts/windows' do
   to '/mnt/c/Windows/Fonts'
 end
 execute 'fc-cache -fv'
+
+link '/usr/local/bin/xdg-open' do
+  to '/usr/bin/wslview'
+end

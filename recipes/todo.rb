@@ -9,6 +9,7 @@ end
 homebrew_package 'aws-sam-cli'
 
 homebrew_package 'k9s'
+homebrew_package 'argocd'
 homebrew_package 'argoproj/tap/kubectl-argo-rollouts'
 homebrew_package 'kayac/tap/ecspresso'
 homebrew_package 'dive'
