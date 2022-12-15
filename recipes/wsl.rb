@@ -1,13 +1,19 @@
+package 'wslu'
+
 file '/etc/wsl.conf' do
   content <<-EOF
 [automount]
 options = "metadata,umask=22,fmask=11"
 [interop]
 appendWindowsPath = false
+[network]
+generateResolvConf = false
 EOF
 end
 
-directory '/mnt/c/tools/mozc'
+directory '/mnt/c/tools/mozc' do
+  recursive true
+end
 
 remote_file '/mnt/c/tools/mozc/mozc_emacs_helper.exe' do
   source 'https://github.com/smzht/mozc_emacs_helper/blob/master/mozc_emacs_helper.exe?raw=true'

@@ -13,11 +13,4 @@ homebrew_package 'argocd'
 homebrew_package 'argoproj/tap/kubectl-argo-rollouts'
 homebrew_package 'kayac/tap/ecspresso'
 homebrew_package 'dive'
-
-apt_repository 'terraform' do
-  arch 'amd64'
-  components ['main']
-  uri 'https://apt.releases.hashicorp.com'
-  key 'https://apt.releases.hashicorp.com/gpg'
-end
-package 'terraform'
+homebrew_package 'gh'

@@ -93,25 +93,17 @@ directory "#{home}/.local/bin" do
   mode '755'
 end
 
-execute "go get github.com/motemen/ghq" do
+execute "go install github.com/x-motemen/ghq@latest" do
   creates "#{home}/go/bin/ghq"
 end
 
-execute "go get github.com/go-delve/delve/cmd/dlv" do
+execute "go install github.com/go-delve/delve/cmd/dlv@latest" do
   creates "#{home}/go/bin/dlv"
 end
 
-execute "go get github.com/stamblerre/gocode" do
-  creates "#{home}/go/bin/gocode"
+execute "go install golang.org/x/tools/gopls@latest" do
+  creates "#{home}/go/bin/gopls"
 end
-
-execute "go get github.com/rogpeppe/godef" do
-  creates "#{home}/go/bin/godef"
-end
-
-# execute "go get golang.org/x/tools/gopls" do
-#   creates "#{home}/go/bin/gopls"
-# end
 
 # aws cli
 remote_file "#{Chef::Config[:file_cache_path]}/awscliv2.zip" do
@@ -143,6 +135,9 @@ remote_file "#{home}/.local/bin/kubectl" do
   mode '755'
 end
 
+execute 'curl https://sdk.cloud.google.com | bash' do
+  creates "#{home}/google-cloud-sdk/bin/gcloud"
+end
 
 # other repos
 ## https://github.com/ahmetb/kubectx
