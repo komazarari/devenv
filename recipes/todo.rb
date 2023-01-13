@@ -14,3 +14,4 @@ homebrew_package 'argoproj/tap/kubectl-argo-rollouts'
 homebrew_package 'kayac/tap/ecspresso'
 homebrew_package 'dive'
 homebrew_package 'gh'
+homebrew_package 'act' # local test for github workflow
