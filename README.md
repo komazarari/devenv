@@ -3,9 +3,9 @@
 WSL Ubuntu 上の環境を構築するための recipe
 
 # Requirements
-chef client
+cinc client
 
-    curl -L https://omnitruck.chef.io/install.sh | sudo bash
+    curl -sL https://omnitruck.cinc.sh/install.sh | sudo bash
 
 # Usage
 
