@@ -94,14 +94,20 @@ directory "#{home}/.local/bin" do
 end
 
 execute "go install github.com/x-motemen/ghq@latest" do
-  creates "#{home}/go/bin/ghq"
+  user name
+  group name
+   creates "#{home}/go/bin/ghq"
 end
 
 execute "go install github.com/go-delve/delve/cmd/dlv@latest" do
+  user name
+  group name
   creates "#{home}/go/bin/dlv"
 end
 
 execute "go install golang.org/x/tools/gopls@latest" do
+  user name
+  group name
   creates "#{home}/go/bin/gopls"
 end
 
@@ -121,6 +127,8 @@ archive_file 'awscliv2' do
 end
 
 bash "install_awscliv2" do
+  user name
+  group name
   cwd "#{Chef::Config[:file_cache_path]}/awscliv2"
   code "./aws/install --install-dir #{home}/aws-cli --bin-dir #{home}/.local/bin"
   action :nothing
@@ -136,6 +144,8 @@ remote_file "#{home}/.local/bin/kubectl" do
 end
 
 execute 'curl https://sdk.cloud.google.com | bash' do
+  user name
+  group name
   creates "#{home}/google-cloud-sdk/bin/gcloud"
 end
 
