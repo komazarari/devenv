@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+#
+# ecs-exec - interactively pick an ECS cluster / task / container and run
+#            `aws ecs execute-command` against it.
+#
+# Selection uses fzf when available, otherwise a numbered menu.
+# Requires: awscli v2, session-manager-plugin (for --interactive sessions).
+
+set -uo pipefail
+
+PROG=${0##*/}
+DEFAULT_COMMAND='/bin/sh'
+
+die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
+info() { printf '%s\n' "$*" >&2; }
+
+usage() {
+  cat >&2 <<EOF
+Usage: $PROG [options] [-- COMMAND...]
+
+Interactively select an ECS cluster, task and container, then open an
+execute-command session. Anything not given as an option is asked for.
+
+Options:
+  -p, --profile PROFILE   AWS profile (default: \$AWS_PROFILE)
+  -r, --region REGION     AWS region (default: profile's region)
+  -c, --cluster NAME      cluster name (substring match is allowed)
+  -t, --task ID|ARN       task id or ARN (substring match is allowed)
+  -n, --container NAME    container name (substring match is allowed)
+      --command CMD       command to run (default: $DEFAULT_COMMAND)
+      --all               also list tasks that are not exec-enabled
+      --dry-run           print the aws command instead of running it
+  -h, --help              show this help
+
+Examples:
+  $PROG                                  # pick everything, run $DEFAULT_COMMAND
+  $PROG -p myprof -c develop             # cluster fixed, pick task/container
+  $PROG -- /bin/bash -lc 'php -v'        # run a one-shot command
+  $PROG --command '/bin/bash'            # same as: -- /bin/bash
+EOF
+}
+
+# ---------------------------------------------------------------- arguments
+
+PROFILE=${AWS_PROFILE:-}
+REGION=
+CLUSTER=
+TASK=
+CONTAINER=
+COMMAND=
+SHOW_ALL=0
+DRY_RUN=0
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -p|--profile)   PROFILE=${2:-}; shift 2 ;;
+    -r|--region)    REGION=${2:-}; shift 2 ;;
+    -c|--cluster)   CLUSTER=${2:-}; shift 2 ;;
+    -t|--task)      TASK=${2:-}; shift 2 ;;
+    -n|--container) CONTAINER=${2:-}; shift 2 ;;
+    --command)      COMMAND=${2:-}; shift 2 ;;
+    --all)          SHOW_ALL=1; shift ;;
+    --dry-run)      DRY_RUN=1; shift ;;
+    -h|--help)      usage; exit 0 ;;
+    --)             shift; break ;;
+    -*)             usage; die "unknown option: $1" ;;
+    *)              break ;;
+  esac
+done
+
+# ECS takes --command as a single string, so re-quote any word that would
+# otherwise be split when it is lexed again on the container side.
+shquote_join() {
+  local arg out=
+  for arg in "$@"; do
+    case $arg in
+      ''|*[[:space:]\'\"\$\\]*) out="$out '$(printf '%s' "$arg" | sed "s/'/'\\\\''/g")'" ;;
+      *) out="$out $arg" ;;
+    esac
+  done
+  printf '%s' "${out# }"
+}
+
+# Remaining words form the command to run, so `-- /bin/bash -lc 'ls -l'` works.
+if [ $# -gt 0 ]; then
+  COMMAND=$(shquote_join "$@")
+fi
+COMMAND=${COMMAND:-$DEFAULT_COMMAND}
+
+command -v aws >/dev/null 2>&1 || die 'aws cli not found'
+
+AWS_ARGS=()
+[ -n "$PROFILE" ] && AWS_ARGS+=(--profile "$PROFILE")
+[ -n "$REGION" ] && AWS_ARGS+=(--region "$REGION")
+
+aws_ecs() {
+  command aws ecs "$@" ${AWS_ARGS[@]+"${AWS_ARGS[@]}"}
+}
+
+# ----------------------------------------------------------------- chooser
+#
+# Reads "value<TAB>display" lines on stdin, writes the chosen value to stdout
+# and everything user-facing to the terminal. Keystrokes come from fd 3 so that
+# the candidate list can be piped in.
+
+{ exec 3</dev/tty; } 2>/dev/null || exec 3<&0
+
+choose() {
+  local prompt=$1 preselect=${2:-}
+  local input line count n
+
+  input=$(cat)
+  [ -n "$input" ] || return 1
+
+  if [ -n "$preselect" ]; then
+    local exact filtered
+    exact=$(printf '%s\n' "$input" | awk -F'\t' -v v="$preselect" '$1 == v')
+    filtered=${exact:-$(printf '%s\n' "$input" | grep -F -- "$preselect")}
+    [ -n "$filtered" ] || { info "$PROG: no $prompt matches: $preselect"; return 1; }
+    input=$filtered
+  fi
+
+  count=$(printf '%s\n' "$input" | wc -l | tr -d ' ')
+  if [ "$count" -eq 1 ]; then
+    line=$input
+  elif command -v fzf >/dev/null 2>&1; then
+    line=$(printf '%s\n' "$input" |
+      fzf --height=60% --reverse --no-multi --prompt="$prompt> " \
+          --delimiter=$'\t' --with-nth=2..) || return 1
+  else
+    info ""
+    info "== select $prompt"
+    printf '%s\n' "$input" | cut -f2- -d$'\t' | nl -ba -w3 -s') ' >&2
+    while :; do
+      printf 'number [1-%s]: ' "$count" >&2
+      read -r n <&3 || return 1
+      case $n in
+        ''|*[!0-9]*) ;;
+        *) [ "$n" -ge 1 ] && [ "$n" -le "$count" ] && break ;;
+      esac
+    done
+    line=$(printf '%s\n' "$input" | sed -n "${n}p")
+  fi
+
+  info "  $prompt: ${line#*$'\t'}"
+  printf '%s\n' "${line%%$'\t'*}"
+}
+
+# ------------------------------------------------------------------ cluster
+
+cluster_lines() {
+  aws_ecs list-clusters --query 'clusterArns[]' --output text |
+    tr '\t' '\n' | sed '/^$/d' |
+    while IFS= read -r arn; do
+      printf '%s\t%s\n' "${arn##*/}" "${arn##*/}"
+    done | sort
+}
+
+CLUSTER=$(cluster_lines | choose cluster "$CLUSTER") || exit 1
+[ -n "$CLUSTER" ] || die 'no cluster selected'
+
+# --------------------------------------------------------------------- task
+
+task_lines() {
+  local arns_raw
+  arns_raw=$(aws_ecs list-tasks --cluster "$CLUSTER" --desired-status RUNNING \
+    --query 'taskArns[]' --output text) || exit 1
+  [ -n "$arns_raw" ] || die "no running task in cluster: $CLUSTER"
+
+  local arns=($arns_raw) i=0
+  while [ $i -lt ${#arns[@]} ]; do
+    aws_ecs describe-tasks --cluster "$CLUSTER" --tasks "${arns[@]:i:100}" \
+      --query 'tasks[].[taskArn, group, taskDefinitionArn, enableExecuteCommand, join(`,`, containers[].name)]' \
+      --output text || exit 1
+    i=$((i + 100))
+  done | while IFS=$'\t' read -r arn group td execflag containers; do
+    [ -n "$arn" ] || continue
+    if [ "$execflag" != "True" ]; then
+      [ "$SHOW_ALL" -eq 1 ] || continue
+      execflag=' [exec:disabled]'
+    else
+      execflag=''
+    fi
+    printf '%s\t%-36s %-32s %s%s\n' \
+      "$arn" "${group#service:}" "${td##*/}" "${arn##*/}" "$execflag"
+  done | sort -t$'\t' -k2
+}
+
+TASK_ARN=$(task_lines | choose task "$TASK") || exit 1
+[ -n "$TASK_ARN" ] || die 'no task selected'
+
+# ---------------------------------------------------------------- container
+
+container_lines() {
+  aws_ecs describe-tasks --cluster "$CLUSTER" --tasks "$TASK_ARN" \
+    --query 'tasks[0].containers[].[name, lastStatus, managedAgents[?name==`ExecuteCommandAgent`].lastStatus | [0]]' \
+    --output text |
+    while IFS=$'\t' read -r name status agent; do
+      [ -n "$name" ] || continue
+      printf '%s\t%-24s %s  agent:%s\n' "$name" "$name" "$status" "${agent:-NONE}"
+    done
+}
+
+CONTAINER=$(container_lines | choose container "$CONTAINER") || exit 1
+[ -n "$CONTAINER" ] || die 'no container selected'
+
+# ------------------------------------------------------------------ execute
+
+if ! command -v session-manager-plugin >/dev/null 2>&1; then
+  info "$PROG: warning: session-manager-plugin not found; the session will fail to start"
+fi
+
+CMD=(aws ecs execute-command
+  ${AWS_ARGS[@]+"${AWS_ARGS[@]}"}
+  --cluster "$CLUSTER"
+  --task "${TASK_ARN##*/}"
+  --container "$CONTAINER"
+  --interactive
+  --command "$COMMAND")
+
+info ""
+info "$(shquote_join "${CMD[@]}")"
+info ""
+
+[ "$DRY_RUN" -eq 1 ] && exit 0
+
+exec "${CMD[@]}"
